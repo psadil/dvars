@@ -1,0 +1,23 @@
+#!/bin/bash
+#SBATCH --job-name=dvars_hcpaging
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=8G
+#SBATCH --time=1:00:00
+#SBATCH --array=0-724
+#SBATCH --output dvars_hcpaging_%a.log
+#SBATCH --constraint="intel,haswell"
+
+module load singularity
+
+dataset=HCPAgingRec
+
+singularity run \
+  -e \
+  --bind $PWD \
+  --bind /dcs07/smart/data/${dataset}/sourcedata/fmriresults01 \
+  docker://psadil/dvars:240919 \
+  python ${PWD}/hcpaging.py \
+  "${SLURM_ARRAY_TASK_ID}" $PWD/${dataset}_srcs ${MYSCRATCH}/dvars/"dataset=${dataset}"
+
