@@ -1,10 +1,9 @@
 import argparse
 from pathlib import Path
-import nibabel as nb
 import re
 import logging
 
-from pymrimisc import dvars
+from pymrimisc import motion
 
 
 from nilearn import maskers
@@ -62,28 +61,17 @@ class DVARS(pydantic.BaseModel):
             / f"sub={self.sub_id}"
             / f"ses={self.ses_id}"
             / f"src={self.src_id}"
-            / "dvars.arrow"
+            / "0.parquet"
         )
 
     def process_run(self) -> None:
         if self.dst.exists():
             logging.info(f"{self.dst} already exists--skipping")
             return
-        if not (parent := self.dst.parent).exists():
-            parent.mkdir(parents=True)
 
-        nii = nb.loadsave.load(self.src)
-        # data have already undergone hp filter
-        mask = maskers.NiftiMasker(
-            detrend=False,
-            standardize=False,
-            t_r=nii.header.get_zooms()[-1],  # type: ignore
-            mask_img=self.mask,
-        )
-        out = mask.fit_transform(nii)
-        dvars.get_dvars(out).drop("value").write_ipc(
-            self.dst, compression="zstd"
-        )
+        mask = maskers.NiftiMasker(mask_img=self.mask)
+        out = mask.fit_transform(self.src)
+        motion.get_dvars(out).drop("value").lazy().sink_parquet(self.dst, mkdir=True)
 
 
 def main(i: int, src: Path, dst_root: Path):
@@ -99,7 +87,7 @@ def main(i: int, src: Path, dst_root: Path):
                 logging.info(f"Will write to {dvars.dst}")
                 dvars.process_run()
 
-    logging.info("completed")
+    logging.info("finished")
 
 
 if __name__ == "__main__":

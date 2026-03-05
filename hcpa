@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH --job-name=dvars_hcpa
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=8G
+#SBATCH --time=1:00:00
+#SBATCH --array=0-724
+#SBATCH --output logs/hcpaging_%a
+#SBATCH --constraint="intel&(haswell|broadwell|cascadelake)"
+
+pixi run python \
+	hcp.py \
+	"${SLURM_ARRAY_TASK_ID}" \
+	/dcs07/smart/data/HCPAgingRec/sourcedata/fmriresults01 \
+	${MYSCRATCH}/dvars/"dataset=hcpa"

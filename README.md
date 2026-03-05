@@ -4,7 +4,7 @@ Repo for calculating DVARS in data stored on JHPCE
 
 ## Structure
 
-Files are stored as arrow datasets. 
+Files are stored as arrow datasets.
 
 ```{shell}
 $ tree -L 5 dvars | head
@@ -43,7 +43,7 @@ For interpretation, see [Afouni & Nichols (2018)](https://doi.org/10.1016/j.neur
 
 Calculations for various dvars measures based on [fMRIscrub](https://github.com/mandymejia/fMRIscrub).
 
-## Import 
+## Import
 
 In python, try [polars.scan_ips](https://docs.pola.rs/api/python/stable/reference/api/polars.scan_ipc.html#polars.scan_ipc)
 
@@ -60,59 +60,51 @@ arrow::open_dataset("/Users/psadil/data/dvars/derivatives/dvars", format = "ipc"
   dplyr::collect()
 ```
 
+## Datasets
 
+### HCPAgingRec
 
-# Datasets
-
-## HCPAgingRec
-
-### Script
+#### Script
 
 [hcpaging](hcpaging)
 
-### Notes
+#### Notes
 
 - Files with `src` containing "hp#" were provided by the HCP after (at least some) high-pass filtering, and no additional filtering was done before calculating DVARS
 - Files with `src` containing "clean" were provided by the HCP after ICA FIX-ing, and no additional cleaning was done before calculating DVARS
 
-### Dataset Documentation
+#### Dataset Documentation
 
-https://humanconnectome.org/study/hcp-lifespan-aging
+<https://humanconnectome.org/study/hcp-lifespan-aging>
 
+#### HCPDevelopmentRec
 
-## HCPDevelopmentRec
+#### Script
 
-### Script
+[hcpadev](hcpdev)
 
-[hcpadev](hcpdev) 
-
-
-### Notes
+#### Notes
 
 - Files with `src` containing "hp#" were provided by the HCP after (at least some) high-pass filtering, and no additional filtering was done before calculating DVARS
 - Files with `src` containing "clean" were provided by the HCP after ICA FIX-ing, and no additional cleaning was done before calculating DVARS
 
+#### Dataset Documentation
 
-### Dataset Documentation
+<https://humanconnectome.org/study/hcp-lifespan-development>
 
-https://humanconnectome.org/study/hcp-lifespan-development
+### ukb
 
-
-## ukb
-
-### Script
+#### Script
 
 [ukb](ukb)
 
-
-### Notes
+#### Notes
 
 - The UKB provides data that have already undergone high-pass filtering and so no additional cleaning was done before calculating DVARS
 - The resting state vs task scans can be identified with the src entity
   - src=20227-filtered_func_data_clean: resting state (after ICA FIX'ing)
   - 'src=20249-filtered_func_data: task scans
 
-### Dataset Documentation
+#### Dataset Documentation
 
-https://biobank.ndph.ox.ac.uk/showcase/download.cgi
-
+<https://biobank.ndph.ox.ac.uk/showcase/download.cgi>

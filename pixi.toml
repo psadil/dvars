@@ -1,0 +1,21 @@
+[workspace]
+authors = ["Patrick Sadil <psadil@gmail.com>"]
+channels = ["conda-forge"]
+name = "dvars"
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+nibabel = ">=5.3.2,<6"
+numpy = ">=2.4.2,<3"
+nilearn = ">=0.13.1,<0.14"
+pydantic = ">=2.12.5,<3"
+polars = "*"
+scipy = ">=1.17.1,<2"
+indexed_gzip = ">=1.10.3,<2"
+jupyter = ">=1.1.1,<2"
+
+[pypi-dependencies]
+pymrimisc = { git = "https://github.com/psadil/pymrimisc.git" }

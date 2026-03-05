@@ -5,16 +5,13 @@ import logging
 
 
 import nibabel as nb
-import numpy as np
-from nilearn import signal
 import pydantic
 
-from pymrimisc import dvars
+from pymrimisc import motion
 
 
 logging.basicConfig(
-    format="%(asctime)s | %(levelname)-8s | %(message)s",
-    level=logging.INFO,
+    format="%(asctime)s | %(levelname)-8s | %(message)s", level=logging.INFO
 )
 
 
@@ -24,7 +21,7 @@ class DVARS(pydantic.BaseModel):
 
     @property
     def sub_id(self) -> str:
-        sub = re.findall(r"\d{7}", str(self.src))
+        sub = re.findall(r"\d{7,6}", str(self.src))
         if not (len(sub) == 1):
             msg = f"Unexpected length of sub_id for {self.src}"
             raise RuntimeError(msg)
@@ -46,45 +43,34 @@ class DVARS(pydantic.BaseModel):
             / f"sub={self.sub_id}"
             / f"ses={self.ses_id}"
             / f"src={self.src_id}"
-            / "dvars.arrow"
+            / "0.parquet"
         )
 
     def process_run(self) -> None:
         if self.dst.exists():
             logging.info(f"{self.dst} already exists--skipping")
             return
-        if not (parent := self.dst.parent).exists():
-            parent.mkdir(parents=True)
 
         nii = nb.loadsave.load(self.src)
-        if "clean" in self.src.name:
-            # data have already been cleaned
-            dvars.get_dvars(nii.get_fdata()).write_ipc(  # type: ignore
-                self.dst, compression="zstd"
-            )
-        else:
-            logging.info("cleaning src before calculating DVARS")
-            out: np.ndarray = signal.clean(
-                signals=nii.get_fdata(),  # type: ignore
-                detrend=True,
-                standardize=False,  # type: ignore
-                high_pass=0.008,
-                t_r=0.72,
-            )
-            dvars.get_dvars(out).write_ipc(self.dst, compression="zstd")
+        motion.get_dvars(nii.get_fdata()).lazy().sink_parquet(  # type: ignore
+            self.dst, mkdir=True
+        )
 
 
 def main(i: int, src: Path, dst_root: Path):
-    subs = [sub for sub in src.read_text().splitlines()]
+    subs = []
+    for sub in src.glob("*"):
+        if sub.is_dir():
+            subs.append(sub)
+    subs.sort()
     to_process = Path(subs[i])
     logging.info(f"Processing {to_process}")
-    for img in (to_process / "MNINonLinear" / "Results").glob(
-        "*MRI_*_*/*dtseries.nii"
-    ):
+    for img in (to_process / "MNINonLinear" / "Results").glob("*MRI_*_*/*dtseries.nii"):
         dvars = DVARS(src=img, dst_root=dst_root)
         logging.info(f"Will write to {dvars.dst}")
         dvars.process_run()
-    logging.info("completed")
+
+    logging.info("finished")
 
 
 if __name__ == "__main__":
